@@ -25,6 +25,8 @@ loki:
       signature_version: s3v4
       s3ForcePathStyle: true
       insecure: false
+      accessKeyId: ""
+      secretAccessKey: ""
   ingester:
     chunk_encoding: snappy
     max_chunk_age: 1h
