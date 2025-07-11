@@ -1,0 +1,86 @@
+kind: GatewayClass
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: envoy-gateway-class
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: envoy-proxy
+  namespace: envoy-ns
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        annotations:
+          oci.oraclecloud.com/load-balancer-type: "nlb"
+          oci-network-load-balancer.oraclecloud.com/oci-network-security-groups: "ocid1.networksecuritygroup.oc1.ap-mumbai-1.aaaaaaaaxjxbu3qs5m3ryadgqy4yr5mj65lieh57jabxhn435xbijs22fzaa"
+          oci-network-load-balancer.oraclecloud.com/node-label-selector: "envoy=true"
+      envoyDeployment:
+        replicas: 1
+        pod:
+          nodeSelector:
+            envoy: "true"
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: envoy-gateway
+  namespace: envoy-ns
+spec:
+  gatewayClassName: envoy-gateway-class
+  infrastructure:
+    parametersRef:
+      group: gateway.envoyproxy.io
+      kind: EnvoyProxy
+      name: envoy-proxy
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 80
+    allowedRoutes:
+      namespaces:
+        from: All
+      kinds:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+  - name: https
+    protocol: HTTPS
+    port: 443
+    hostname: argocd.tpoci.tgodev.com
+    allowedRoutes:
+      namespaces:
+        from: Selector
+        selector:
+          matchLabels:
+            kubernetes.io/metadata.name: argocd
+      kinds:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+    tls:
+      mode: Terminate
+      certificateRefs:
+      - name: argocd-tls
+---
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: argocd-route
+  namespace: argocd
+spec:
+  parentRefs:
+  - name: envoy-gateway
+    namespace: envoy-ns
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: argocd-server
+      port: 80

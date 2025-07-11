@@ -1,0 +1,256 @@
+loki:
+  image:
+    tag: "3.4.3"
+  schemaConfig:
+    configs:
+    - from: 2024-05-13
+      store: tsdb
+      object_store: s3
+      schema: v13
+      index:
+        prefix: loki_index_
+        period: 24h
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 3
+  storage:
+    type: s3
+    bucketNames:
+      chunks: loki-test-new
+      ruler: loki-test-new
+      admin: loki-test-new
+    s3:
+      endpoint: https://bmybt22tqbn1.compat.objectstorage.ap-mumbai-1.oraclecloud.com
+      region: ap-mumbai-1
+      accessKeyId: ""
+      secretAccessKey: ""
+      signature_version: s3v4
+      s3ForcePathStyle: true
+      insecure: false
+  ingester:
+    chunk_encoding: snappy
+    max_chunk_age: 1h
+    chunk_target_size: 1572864 # 1.5MB compressed
+    chunk_idle_period: 30m # 30 minutes
+    chunk_block_size: 262144
+    autoforget_unhealthy: true
+    wal:
+      flush_on_shutdown: true
+  pattern_ingester:
+    enabled: true
+  limits_config:
+    ingestion_rate_mb: 500
+    ingestion_burst_size_mb: 500
+    reject_old_samples: false
+    max_line_size: 50MB
+    max_streams_per_user: 0
+    max_global_streams_per_user: 0
+    per_stream_rate_limit: 100MB
+    per_stream_rate_limit_burst: 100MB
+    max_entries_limit_per_query: 10000
+    max_chunks_per_query: 5000000
+    max_query_series: 5000
+    max_query_length: 2160h
+    max_query_parallelism: 1000
+    retention_period: 168h
+    allow_structured_metadata: true
+    max_structured_metadata_size: 128KB
+    volume_enabled: true
+    query_timeout: 5m
+  server:
+    http_listen_port: 3100
+    grpc_listen_port: 9095
+    http_server_read_timeout: 600s
+    http_server_write_timeout: 600s
+    grpc_server_max_recv_msg_size: 104857600
+    grpc_server_max_send_msg_size: 104857600
+
+  deploymentMode: SimpleScalable
+
+test:
+  enabled: false
+
+chunksCache:
+  enabled: false
+
+lokiCanary:
+  enabled: false
+
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+
+backend:
+  # nodeSelector:
+  #   oke.oraclecloud.com/pool.name: "loki"
+  # topologySpreadConstraints:
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: loki
+  extraEnv:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: secret_key
+  replicas: 3
+  resources:
+    requests:
+      cpu: 1
+      memory: 2Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 80
+    behavior:
+      scaleUp:
+        stabilizationWindowSeconds: 300
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+      scaleDown:
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 180
+        stabilizationWindowSeconds: 300
+read:
+  # nodeSelector:
+  #   oke.oraclecloud.com/pool.name: "loki"
+  # topologySpreadConstraints:
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: loki
+  extraEnv:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: secret_key
+  replicas: 3
+  resources:
+    requests:
+      cpu: 1
+      memory: 2Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 80
+    behavior:
+      scaleUp:
+        stabilizationWindowSeconds: 300
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+      scaleDown:
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 180
+        stabilizationWindowSeconds: 300
+
+write:
+  # nodeSelector:
+  #   oke.oraclecloud.com/pool.name: "loki"
+  # topologySpreadConstraints:
+  # - maxSkew: 1
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: loki
+  extraEnv:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: secret_key
+  replicas: 3
+  extraArgs:
+  - '--ingester.flush-on-shutdown=true'
+  resources:
+    requests:
+      cpu: 2
+      memory: 4Gi
+    limits:
+      cpu: 4
+      memory: 8Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+    targetMemoryUtilizationPercentage: 80
+    behavior:
+      scaleUp:
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 900
+      scaleDown:
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 1800
+        stabilizationWindowSeconds: 3600
+
+minio:
+  enabled: false
+
+sidecar:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+gateway:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  enabled: true
+  replicas: 1
+  service:
+    type: LoadBalancer
+    annotations:
+      oci.oraclecloud.com/load-balancer-type: "nlb"
+      # oci-network-load-balancer.oraclecloud.com/oci-network-security-groups: "ocid1.networksecuritygroup.oc1.ap-mumbai-1.aaaaaaaamebgchhtmpjrgrknuq3t7mmklu57gzokvro5qij6nrc5d4qpiz6a"
