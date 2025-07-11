@@ -22,8 +22,6 @@ loki:
     s3:
       endpoint: loki-dev-bmgvpajvgkne.private.compat.objectstorage.ap-mumbai-1.oci.customer-oci.com
       region: ap-mumbai-1
-      accessKeyId: LOKI_S3_ACCESS_KEY_ID
-      secretAccessKey: LOKI_S3_SECRET_ACCESS_KEY
       signature_version: s3v4
       s3ForcePathStyle: true
       insecure: false
@@ -224,12 +222,12 @@ gateway:
       oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.ap-mumbai-1.aaaaaaaa3l4x5jbznzwq6buvry2snstdgcx2v7irkqhx55m5jqavsxo46mcq"
 
 extraEnv:
-- name: LOKI_S3_ACCESS_KEY_ID
+- name: AWS_ACCESS_KEY_ID
   valueFrom:
     configMapKeyRef:
       name: loki-s3-credentials
       key: access_key
-- name: LOKI_S3_SECRET_ACCESS_KEY
+- name: AWS_SECRET_ACCESS_KEY
   valueFrom:
     configMapKeyRef:
       name: loki-s3-credentials
