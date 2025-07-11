@@ -16,12 +16,14 @@ loki:
   storage:
     type: s3
     bucketNames:
-      chunks: Loki-Storage
-      ruler: Loki-Storage
-      admin: Loki-Storage
+      chunks: loki-test-new
+      ruler: loki-test-new
+      admin: loki-test-new
     s3:
-      endpoint: loki-dev-bmgvpajvgkne.private.compat.objectstorage.ap-mumbai-1.oci.customer-oci.com
+      endpoint: https://bmybt22tqbn1.compat.objectstorage.ap-mumbai-1.oraclecloud.com
       region: ap-mumbai-1
+      accessKeyId: ""
+      secretAccessKey: ""
       signature_version: s3v4
       s3ForcePathStyle: true
       insecure: false
@@ -81,14 +83,25 @@ monitoring:
       installOperator: false
 
 backend:
-  nodeSelector:
-    oke.oraclecloud.com/pool.name: "loki"
+  # nodeSelector:
+  #   oke.oraclecloud.com/pool.name: "loki"
   # topologySpreadConstraints:
   #   topologyKey: kubernetes.io/hostname
   #   whenUnsatisfiable: DoNotSchedule
   #   labelSelector:
   #     matchLabels:
   #       app.kubernetes.io/name: loki
+  extraEnv:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: secret_key
   replicas: 3
   resources:
     requests:
@@ -116,26 +129,26 @@ backend:
           value: 1
           periodSeconds: 180
         stabilizationWindowSeconds: 300
-  extraEnv:
-  - name: AWS_ACCESS_KEY_ID
-    valueFrom:
-      configMapKeyRef:
-        name: loki-s3-credentials
-        key: access_key
-  - name: AWS_SECRET_ACCESS_KEY
-    valueFrom:
-      configMapKeyRef:
-        name: loki-s3-credentials
-        key: secret_key
 read:
-  nodeSelector:
-    oke.oraclecloud.com/pool.name: "loki"
+  # nodeSelector:
+  #   oke.oraclecloud.com/pool.name: "loki"
   # topologySpreadConstraints:
   #   topologyKey: kubernetes.io/hostname
   #   whenUnsatisfiable: DoNotSchedule
   #   labelSelector:
   #     matchLabels:
   #       app.kubernetes.io/name: loki
+  extraEnv:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: secret_key
   replicas: 3
   resources:
     requests:
@@ -163,21 +176,10 @@ read:
           value: 1
           periodSeconds: 180
         stabilizationWindowSeconds: 300
-  extraEnv:
-  - name: AWS_ACCESS_KEY_ID
-    valueFrom:
-      configMapKeyRef:
-        name: loki-s3-credentials
-        key: access_key
-  - name: AWS_SECRET_ACCESS_KEY
-    valueFrom:
-      configMapKeyRef:
-        name: loki-s3-credentials
-        key: secret_key
 
 write:
-  nodeSelector:
-    oke.oraclecloud.com/pool.name: "loki"
+  # nodeSelector:
+  #   oke.oraclecloud.com/pool.name: "loki"
   # topologySpreadConstraints:
   # - maxSkew: 1
   #   topologyKey: kubernetes.io/hostname
@@ -185,6 +187,17 @@ write:
   #   labelSelector:
   #     matchLabels:
   #       app.kubernetes.io/name: loki
+  extraEnv:
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: access_key
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: loki-s3-secret
+        key: secret_key
   replicas: 3
   extraArgs:
   - '--ingester.flush-on-shutdown=true'
@@ -213,17 +226,6 @@ write:
           value: 1
           periodSeconds: 1800
         stabilizationWindowSeconds: 3600
-  extraEnv:
-  - name: AWS_ACCESS_KEY_ID
-    valueFrom:
-      configMapKeyRef:
-        name: loki-s3-credentials
-        key: access_key
-  - name: AWS_SECRET_ACCESS_KEY
-    valueFrom:
-      configMapKeyRef:
-        name: loki-s3-credentials
-        key: secret_key
 
 minio:
   enabled: false
@@ -251,5 +253,4 @@ gateway:
     type: LoadBalancer
     annotations:
       oci.oraclecloud.com/load-balancer-type: "nlb"
-      oci-network-load-balancer.oraclecloud.com/internal: "true"
-      oci-network-load-balancer.oraclecloud.com/subnet: "ocid1.subnet.oc1.ap-mumbai-1.aaaaaaaa3l4x5jbznzwq6buvry2snstdgcx2v7irkqhx55m5jqavsxo46mcq"
+      # oci-network-load-balancer.oraclecloud.com/oci-network-security-groups: "ocid1.networksecuritygroup.oc1.ap-mumbai-1.aaaaaaaamebgchhtmpjrgrknuq3t7mmklu57gzokvro5qij6nrc5d4qpiz6a"
