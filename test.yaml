@@ -17,8 +17,6 @@ spec:
   - repoURL: 'https://github.com/likhith-tally/argocd-test.git'
     targetRevision: HEAD
     ref: values
-    plugin:
-      name: argocd-vault-plugin
   project: default
   syncPolicy:
     automated:
