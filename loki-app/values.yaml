@@ -83,12 +83,12 @@ monitoring:
 backend:
   nodeSelector:
     oke.oraclecloud.com/pool.name: "loki"
-  topologySpreadConstraints:
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchLabels:
-        app.kubernetes.io/name: loki
+  # topologySpreadConstraints:
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: loki
   replicas: 3
   resources:
     requests:
@@ -119,12 +119,12 @@ backend:
 read:
   nodeSelector:
     oke.oraclecloud.com/pool.name: "loki"
-  topologySpreadConstraints:
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchLabels:
-        app.kubernetes.io/name: loki
+  # topologySpreadConstraints:
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: loki
   replicas: 3
   resources:
     requests:
@@ -156,13 +156,13 @@ read:
 write:
   nodeSelector:
     oke.oraclecloud.com/pool.name: "loki"
-  topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchLabels:
-        app.kubernetes.io/name: loki
+  # topologySpreadConstraints:
+  # - maxSkew: 1
+  #   topologyKey: kubernetes.io/hostname
+  #   whenUnsatisfiable: DoNotSchedule
+  #   labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: loki
   replicas: 3
   extraArgs:
   - '--ingester.flush-on-shutdown=true'
