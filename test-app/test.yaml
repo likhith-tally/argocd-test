@@ -1,0 +1,7 @@
+kind: Secret
+apiVersion: v1
+metadata:
+  name: test-secret
+type: Opaque
+data:
+  POSTGRES_PASSWORD: <path:ocivault#my_secret_password>
